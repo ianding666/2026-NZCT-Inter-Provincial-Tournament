@@ -410,18 +410,35 @@ const OUTDOOR_GRID = {
     ],
 };
 
-const INDOOR_GRID = {
-    '13:30': [['p10',2],['p10',3],['p7',2],['p7',3],null,null],
-    '14:15': [['p10',0],['p10',1],['p7',0],['p7',1],null,null],
-    '15:00': [['p11',2],['p11',3],['p8',2],['p8',3],['p4',2],['p4',3]],
-    '15:45': [['p11',0],['p11',1],['p8',0],['p8',1],['p4',0],['p4',1]],
-    '16:30': [['p1',2],['p1',3],['p9',2],['p9',3],['p12',2],['p12',3]],
-    '17:15': [['p1',0],['p1',1],['p9',0],['p9',1],['p12',0],['p12',1]],
-    '18:00': [['p2',2],['p2',3],['p5',2],['p5',3],null,null],
-    '18:45': [['p2',0],['p2',1],['p5',0],['p5',1],null,null],
-    '19:30': [['p3',2],['p3',3],['p6',2],['p6',3],null,null],
-    '20:15': [['p3',0],['p3',1],['p6',0],['p6',1],null,null],
-};
+// Slot definitions derived from original placement match assignments
+const PLACEMENT_SLOTS = PLACEMENT_GROUPS_DEF.map(pg =>
+    pg.matches.map(m => ({time: m.time, courts: m.courts}))
+);
+const COURT_COLS = {'1-2号场': [0,1], '3-4号场': [2,3], '5-6号场': [4,5]};
+const TIME_NEXT = {'13:30':'14:15', '15:00':'15:45', '16:30':'17:15', '18:00':'18:45', '19:30':'20:15'};
+const PLACEMENT_GROUP_LABELS = PLACEMENT_GROUPS_DEF.map(pg => pg.name);
+
+function buildIndoorGrid() {
+    const allTimes = ['13:30','14:15','15:00','15:45','16:30','17:15','18:00','18:45','19:30','20:15'];
+    const grid = {};
+    allTimes.forEach(t => grid[t] = [null,null,null,null,null,null]);
+    const assignment = state.slotAssignment || [0,1,2,3];
+    PLACEMENT_GROUPS_DEF.forEach((pg, pgIdx) => {
+        const slotIdx = assignment[pgIdx];
+        const slots = PLACEMENT_SLOTS[slotIdx];
+        pg.matches.forEach((m, mi) => {
+            const slot = slots[mi];
+            const cols = COURT_COLS[slot.courts];
+            const t1 = slot.time;
+            const t2 = TIME_NEXT[t1];
+            grid[t1][cols[0]] = [m.id, 2];
+            grid[t1][cols[1]] = [m.id, 3];
+            grid[t2][cols[0]] = [m.id, 0];
+            grid[t2][cols[1]] = [m.id, 1];
+        });
+    });
+    return grid;
+}
 
 // ===================== STATE =====================
 
@@ -432,7 +449,7 @@ function defaultState() {
     [...GROUP_MATCHES_DEF, ...PLACEMENT_GROUPS_DEF.flatMap(g => g.matches)].forEach(m => {
         scores[m.id] = RUBBER_NAMES.map(() => [['',''],['',''],['','']]);
     });
-    return { scores, seeds: {} };
+    return { scores, seeds: {}, slotAssignment: [0,1,2,3] };
 }
 
 let state = loadState();
@@ -447,6 +464,7 @@ function loadState() {
                 if (!parsed.scores[key]) parsed.scores[key] = def.scores[key];
             }
             if (!parsed.seeds) parsed.seeds = {};
+            if (!parsed.slotAssignment) parsed.slotAssignment = [0,1,2,3];
             return parsed;
         }
     } catch(e) {}
@@ -971,12 +989,13 @@ function renderOutdoorDraw() {
 
 function renderIndoorDraw() {
     const el = document.getElementById('indoor-draw');
+    const indoorGrid = buildIndoorGrid();
     const times = ['13:30','14:15','15:00','15:45','16:30','17:15','18:00','18:45','19:30','20:15'];
     let html = '<table class="draw-table"><tr><th>时间 Time</th>';
     for (let c = 1; c <= 6; c++) html += `<th>${c}号场 Ct.${c}</th>`;
     html += '</tr>';
     for (const time of times) {
-        const cells = INDOOR_GRID[time];
+        const cells = indoorGrid[time];
         html += `<tr><td class="time-cell">${time}</td>`;
         for (const cell of cells) {
             if (cell) {
@@ -994,8 +1013,29 @@ function renderIndoorDraw() {
 
 function renderSeedMapping() {
     const el = document.getElementById('seed-mapping');
+    const assignment = state.slotAssignment || [0,1,2,3];
+    let swapHtml = '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">';
+    swapHtml += '<span style="font-weight:700;font-size:0.85rem;color:var(--primary)">🔄 交换场地时间 Swap Courts/Times:</span>';
+    swapHtml += '<select id="swap-a" class="seed-select" style="min-width:160px">';
+    PLACEMENT_GROUPS_DEF.forEach((pg, i) => {
+        swapHtml += `<option value="${i}">${pg.name} → ${getSlotDescription(assignment[i])}</option>`;
+    });
+    swapHtml += '</select>';
+    swapHtml += '<span style="font-weight:700;font-size:1rem">↔</span>';
+    swapHtml += '<select id="swap-b" class="seed-select" style="min-width:160px">';
+    PLACEMENT_GROUPS_DEF.forEach((pg, i) => {
+        swapHtml += `<option value="${i}" ${i===1?'selected':''}>${pg.name} → ${getSlotDescription(assignment[i])}</option>`;
+    });
+    swapHtml += '</select>';
+    swapHtml += '<button onclick="swapPlacementSlots(parseInt(document.getElementById(\'swap-a\').value), parseInt(document.getElementById(\'swap-b\').value))" style="padding:4px 14px;border:1.5px solid var(--primary);border-radius:4px;background:var(--primary);color:#fff;font-weight:600;font-size:0.82rem;cursor:pointer">交换 Swap</button>';
+    swapHtml += '</div>';
+
     el.innerHTML = `<div class="seed-section">
-        <h3>🏷️ 种子排位 Seeding — 根据小组赛成绩分配 Assign based on group results</h3>
+        <h3>🏷️ 种子排位 Seeding — 根据小组赛成绩分配 Assign based on group results
+            <button onclick="autoSeed()" style="margin-left:12px;padding:4px 14px;border:1.5px solid var(--primary);border-radius:4px;background:var(--primary);color:#fff;font-weight:600;font-size:0.82rem;cursor:pointer">⚡ 自动排位 Auto Seed</button>
+            <button onclick="clearSeeds()" style="margin-left:6px;padding:4px 14px;border:1.5px solid #e74c3c;border-radius:4px;background:#e74c3c;color:#fff;font-weight:600;font-size:0.82rem;cursor:pointer">🗑️ 清除排位 Clear Seeds</button>
+        </h3>
+        ${swapHtml}
         <div class="seed-grid">
             ${Array.from({length:12}, (_,i) => i+1).map(s => `
                 <div class="seed-row">
@@ -1021,6 +1061,58 @@ function setSeed(seed, team) {
     renderIndoorDraw();
     renderSeedMapping();
     renderPlacementStandings();
+}
+
+function autoSeed() {
+    // Get standings for each group
+    const groupStandings = GROUPS.map((_, gi) => calcGroupStandings(gi));
+    // Collect teams by finishing position (1st, 2nd, 3rd, 4th)
+    const tiers = [[], [], [], []];
+    for (const standings of groupStandings) {
+        standings.forEach((s, rank) => {
+            if (rank < 4) tiers[rank].push(s);
+        });
+    }
+    // Sort each tier by net games (gw - gl) descending
+    tiers.forEach(tier => tier.sort((a, b) => (b.gw - b.gl) - (a.gw - a.gl)));
+    // Assign seeds: tier 0 → #1-3, tier 1 → #4-6, tier 2 → #7-9, tier 3 → #10-12
+    let seedNum = 1;
+    for (const tier of tiers) {
+        for (const s of tier) {
+            state.seeds[seedNum] = s.team;
+            seedNum++;
+        }
+    }
+    saveState();
+    renderSeedMapping();
+    renderIndoorDraw();
+    renderPlacementStandings();
+}
+
+function clearSeeds() {
+    state.seeds = {};
+    saveState();
+    renderSeedMapping();
+    renderIndoorDraw();
+    renderPlacementStandings();
+}
+
+function swapPlacementSlots(idxA, idxB) {
+    if (idxA === idxB) return;
+    if (!state.slotAssignment) state.slotAssignment = [0,1,2,3];
+    const tmp = state.slotAssignment[idxA];
+    state.slotAssignment[idxA] = state.slotAssignment[idxB];
+    state.slotAssignment[idxB] = tmp;
+    saveState();
+    renderIndoorDraw();
+    renderSeedMapping();
+}
+
+function getSlotDescription(slotIdx) {
+    const slots = PLACEMENT_SLOTS[slotIdx];
+    const courts = [...new Set(slots.map(s => s.courts))].join('+');
+    const times = slots.map(s => s.time).join('/');
+    return `${courts} (${times})`;
 }
 
 function renderAll() {
