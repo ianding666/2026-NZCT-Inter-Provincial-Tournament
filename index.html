@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026省际网球赛对阵表 | Inter-Provincial Tennis Tournament</title>
+    <style>
+        :root {
+            --primary: #1a5276;
+            --primary-light: #2980b9;
+            --bg: #f0f2f5;
+            --card-bg: #fff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #dce1e6;
+            --win: #27ae60;
+            --lose: #c0392b;
+            --hover: #eaf2f8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff;
+            padding: 16px 24px;
+            text-align: center;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: 700; }
+        .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
+        .container { max-width: 100%; margin: 0 auto; padding: 12px; }
+
+        /* Section titles */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 20px 0 10px;
+            padding: 8px 16px;
+            background: #fff;
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        /* Standings */
+        .standings-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .standings-card {
+            flex: 1;
+            min-width: 280px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .standings-card-header {
+            background: var(--primary);
+            color: #fff;
+            padding: 8px 14px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .standings-card-header.gold { background: linear-gradient(135deg, #f1c40f, #e67e22); }
+        .standings-card-header.silver { background: linear-gradient(135deg, #bdc3c7, #95a5a6); }
+        .standings-card-header.bronze { background: linear-gradient(135deg, #e67e22, #d35400); }
+        .standings-card-header.fourth { background: linear-gradient(135deg, #1abc9c, #16a085); }
+        .standings { width: 100%; border-collapse: collapse; }
+        .standings th {
+            background: #f7f9fb;
+            padding: 6px 8px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+        .standings th:first-child { text-align: left; padding-left: 14px; }
+        .standings td {
+            padding: 5px 8px;
+            text-align: center;
+            font-size: 0.82rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .standings td:first-child { text-align: left; font-weight: 600; padding-left: 14px; }
+        .standings tr:hover { background: var(--hover); }
+
+        /* Draw Table */
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+        .toolbar button {
+            padding: 6px 16px;
+            border: 1.5px solid rgba(255,255,255,0.4);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toolbar button:hover { background: rgba(255,255,255,0.3); }
+        .toolbar .btn-danger { border-color: #e74c3c; }
+        .toolbar .btn-danger:hover { background: rgba(231,76,60,0.4); }
+        .draw-wrapper {
+            overflow-x: auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+        .draw-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .draw-table th {
+            background: var(--primary);
+            color: #fff;
+            padding: 8px 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid #15467a;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .draw-table .time-cell {
+            background: #34495e;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 8px 10px;
+            white-space: nowrap;
+            border: 1px solid #2c3e50;
+            vertical-align: top;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+        }
+        .draw-table td {
+            border: 1px solid var(--border);
+            padding: 3px;
+            vertical-align: top;
+            min-width: 70px;
+        }
+        .draw-table td.empty-cell {
+            background: #f8f8f8;
+        }
+
+        /* Cell content */
+        .cell-match {
+            padding: 1px;
+        }
+        .cell-label {
+            font-size: 0.72rem;
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 1px;
+            line-height: 1.2;
+        }
+        .cell-rubber {
+            font-size: 0.65rem;
+            color: #888;
+            font-weight: 600;
+        }
+        .cell-label.t1-won { color: var(--win); }
+        .cell-label.t2-won { color: var(--lose); }
+        .cell-label .team-won { color: var(--win); font-weight: 700; }
+        .cell-label .team-lost { color: var(--lose); }
+        .cell-score {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+        .cell-score input {
+            width: 28px;
+            height: 24px;
+            text-align: center;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.15s;
+            background: #fff;
+            padding: 0;
+        }
+        .cell-score input:focus {
+            border-color: var(--primary-light);
+            background: #eaf2f8;
+        }
+        .cell-score .sep {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #bbb;
+        }
+        .cell-score .set-sep {
+            width: 4px;
+        }
+        .cell-score input.winner-input {
+            border-color: var(--win);
+            color: var(--win);
+        }
+        .cell-score input.loser-input {
+            border-color: var(--lose);
+            color: var(--lose);
+        }
+
+        /* Seed mapping */
+        .seed-section {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .seed-section h3 {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .seed-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+        }
+        .seed-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .seed-label {
+            font-weight: 700;
+            font-size: 0.82rem;
+            min-width: 30px;
+            color: var(--primary);
+        }
+        .seed-select {
+            flex: 1;
+            padding: 4px 8px;
+            border: 1.5px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.82rem;
+            outline: none;
+        }
+        .seed-select:focus { border-color: var(--primary-light); }
+
+        /* Match total overlay */
+        .match-total {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: var(--primary);
+            color: #fff;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.2rem; }
+            .standings-row { flex-direction: column; }
+            .cell-score input { width: 24px; height: 22px; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>2026 省际网球赛对阵表 Inter-Provincial Tennis Tournament</h1>
+    <div class="toolbar">
+        <button onclick="exportData()">💾 导出 Export</button>
+        <button onclick="document.getElementById('import-file').click()">📂 导入 Import</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <button onclick="clearData()" class="btn-danger">🗑️ 清除 Clear</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section-title">🏟️ 室外小组赛 Outdoor Round Robin (先胜4局 First to 4 Games)</div>
+    <div id="group-standings" class="standings-row"></div>
+    <div id="outdoor-draw" class="draw-wrapper"></div>
+
+    <div class="section-title">🏠 室内排位赛 Indoor Placement (先胜6局 First to 6 Games)</div>
+    <div id="seed-mapping"></div>
+    <div id="placement-standings" class="standings-row"></div>
+    <div id="indoor-draw" class="draw-wrapper"></div>
+
+    <div class="section-title">🏅 配对排行榜 Pair Leaderboard</div>
+    <div id="pair-leaderboard" class="standings-row"></div>
+</div>
+
+<script>
+// ===================== DATA MODEL =====================
+
+const ALL_TEAMS = ['广东','山东','江苏','湖北','四川','河北','天津','台湾','上海','辽宁','福建','金徽'];
+const RUBBER_NAMES = ['男双A MD-A', '男双B MD-B', '女双 WD', '混双 XD'];
+
+const TEAM_EN = {
+    '广东':'Guangdong','山东':'Shandong','江苏':'Jiangsu','湖北':'Hubei',
+    '四川':'Sichuan','河北':'Hebei','天津':'Tianjin','台湾':'Taiwan',
+    '上海':'Shanghai','辽宁':'Liaoning','福建':'Fujian','金徽':'Jinhui'
+};
+const TEAM_SHORT = {
+    '广东':'GD','山东':'SD','江苏':'JS','湖北':'HB',
+    '四川':'SC','河北':'HEB','天津':'TJ','台湾':'TW',
+    '上海':'SH','辽宁':'LN','福建':'FJ','金徽':'JH'
+};
+function tn(name) { return name + ' ' + (TEAM_SHORT[name] || name); }
+
+const GROUPS = [
+    { name: 'A组 Group A', teams: ['广东','山东','江苏','湖北'] },
+    { name: 'B组 Group B', teams: ['四川','河北','天津','台湾'] },
+    { name: 'C组 Group C', teams: ['上海','辽宁','福建','金徽'] },
+];
+
+const GROUP_MATCHES_DEF = [
+    { id:'ga1', group:0, team1:'广东', team2:'江苏', time:'10:30', courts:'7-10号场' },
+    { id:'ga2', group:0, team1:'广东', team2:'山东', time:'11:00', courts:'7-10号场' },
+    { id:'ga3', group:0, team1:'山东', team2:'江苏', time:'11:30', courts:'7-10号场' },
+    { id:'ga4', group:0, team1:'湖北', team2:'山东', time:'12:00', courts:'7-10号场' },
+    { id:'ga5', group:0, team1:'湖北', team2:'江苏', time:'12:30', courts:'7-10号场' },
+    { id:'ga6', group:0, team1:'广东', team2:'湖北', time:'13:00', courts:'7-10号场' },
+    { id:'gb1', group:1, team1:'四川', team2:'河北', time:'10:30', courts:'11-12号场' },
+    { id:'gb2', group:1, team1:'台湾', team2:'天津', time:'10:30', courts:'13-14号场' },
+    { id:'gb3', group:1, team1:'四川', team2:'天津', time:'11:30', courts:'11-12号场' },
+    { id:'gb4', group:1, team1:'台湾', team2:'河北', time:'11:30', courts:'13-14号场' },
+    { id:'gb5', group:1, team1:'四川', team2:'台湾', time:'12:30', courts:'11-12号场' },
+    { id:'gb6', group:1, team1:'天津', team2:'河北', time:'12:30', courts:'13-14号场' },
+    { id:'gc1', group:2, team1:'上海', team2:'辽宁', time:'10:30', courts:'15-16号场' },
+    { id:'gc2', group:2, team1:'福建', team2:'金徽', time:'10:30', courts:'17-18号场' },
+    { id:'gc3', group:2, team1:'上海', team2:'金徽', time:'11:30', courts:'15-16号场' },
+    { id:'gc4', group:2, team1:'福建', team2:'辽宁', time:'11:30', courts:'17-18号场' },
+    { id:'gc5', group:2, team1:'上海', team2:'福建', time:'12:30', courts:'15-16号场' },
+    { id:'gc6', group:2, team1:'金徽', team2:'辽宁', time:'12:30', courts:'17-18号场' },
+];
+
+const PLACEMENT_GROUPS_DEF = [
+    { name: '1-3名决赛 Finals', headerClass: 'gold', seeds: [1,2,3], matches: [
+        { id:'p1', s1:2, s2:3, time:'16:30', courts:'1-2号场' },
+        { id:'p2', s1:1, s2:3, time:'18:00', courts:'1-2号场' },
+        { id:'p3', s1:1, s2:2, time:'19:30', courts:'1-2号场' },
+    ]},
+    { name: '4-6名 4th-6th Place', headerClass: 'silver', seeds: [4,5,6], matches: [
+        { id:'p4', s1:5, s2:6, time:'15:00', courts:'5-6号场' },
+        { id:'p5', s1:4, s2:6, time:'18:00', courts:'3-4号场' },
+        { id:'p6', s1:4, s2:5, time:'19:30', courts:'3-4号场' },
+    ]},
+    { name: '7-9名 7th-9th Place', headerClass: 'bronze', seeds: [7,8,9], matches: [
+        { id:'p7', s1:8, s2:9, time:'13:30', courts:'3-4号场' },
+        { id:'p8', s1:7, s2:9, time:'15:00', courts:'3-4号场' },
+        { id:'p9', s1:7, s2:8, time:'16:30', courts:'3-4号场' },
+    ]},
+    { name: '10-12名 10th-12th Place', headerClass: 'fourth', seeds: [10,11,12], matches: [
+        { id:'p10', s1:11, s2:12, time:'13:30', courts:'1-2号场' },
+        { id:'p11', s1:10, s2:12, time:'15:00', courts:'1-2号场' },
+        { id:'p12', s1:10, s2:11, time:'16:30', courts:'5-6号场' },
+    ]},
+];
+
+// Cell mapping: [matchId, rubberIndex]  (null = empty cell)
+const OUTDOOR_GRID = {
+    '10:30': [
+        ['ga1',0],['ga1',1],['ga1',2],['ga1',3],
+        ['gb1',2],['gb1',3],['gb2',2],['gb2',3],
+        ['gc1',2],['gc1',3],['gc2',2],['gc2',3]
+    ],
+    '11:00': [
+        ['ga2',0],['ga2',1],['ga2',2],['ga2',3],
+        ['gb1',0],['gb1',1],['gb2',0],['gb2',1],
+        ['gc1',0],['gc1',1],['gc2',0],['gc2',1]
+    ],
+    '11:30': [
+        ['ga3',0],['ga3',1],['ga3',2],['ga3',3],
+        ['gb3',2],['gb3',3],['gb4',2],['gb4',3],
+        ['gc3',2],['gc3',3],['gc4',2],['gc4',3]
+    ],
+    '12:00': [
+        ['ga4',0],['ga4',1],['ga4',2],['ga4',3],
+        ['gb3',0],['gb3',1],['gb4',0],['gb4',1],
+        ['gc3',0],['gc3',1],['gc4',0],['gc4',1]
+    ],
+    '12:30': [
+        ['ga5',0],['ga5',1],['ga5',2],['ga5',3],
+        ['gb5',2],['gb5',3],['gb6',2],['gb6',3],
+        ['gc5',2],['gc5',3],['gc6',2],['gc6',3]
+    ],
+    '13:00': [
+        ['ga6',0],['ga6',1],['ga6',2],['ga6',3],
+        ['gb5',0],['gb5',1],['gb6',0],['gb6',1],
+        ['gc5',0],['gc5',1],['gc6',0],['gc6',1]
+    ],
+};
+
+const INDOOR_GRID = {
+    '13:30': [['p10',2],['p10',3],['p7',2],['p7',3],null,null],
+    '14:15': [['p10',0],['p10',1],['p7',0],['p7',1],null,null],
+    '15:00': [['p11',2],['p11',3],['p8',2],['p8',3],['p4',2],['p4',3]],
+    '15:45': [['p11',0],['p11',1],['p8',0],['p8',1],['p4',0],['p4',1]],
+    '16:30': [['p1',2],['p1',3],['p9',2],['p9',3],['p12',2],['p12',3]],
+    '17:15': [['p1',0],['p1',1],['p9',0],['p9',1],['p12',0],['p12',1]],
+    '18:00': [['p2',2],['p2',3],['p5',2],['p5',3],null,null],
+    '18:45': [['p2',0],['p2',1],['p5',0],['p5',1],null,null],
+    '19:30': [['p3',2],['p3',3],['p6',2],['p6',3],null,null],
+    '20:15': [['p3',0],['p3',1],['p6',0],['p6',1],null,null],
+};
+
+// ===================== STATE =====================
+
+const STORAGE_KEY = 'tennis_tournament_2026';
+
+function defaultState() {
+    const scores = {};
+    [...GROUP_MATCHES_DEF, ...PLACEMENT_GROUPS_DEF.flatMap(g => g.matches)].forEach(m => {
+        scores[m.id] = RUBBER_NAMES.map(() => [['',''],['',''],['','']]);
+    });
+    return { scores, seeds: {} };
+}
+
+let state = loadState();
+
+function loadState() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            const def = defaultState();
+            for (const key of Object.keys(def.scores)) {
+                if (!parsed.scores[key]) parsed.scores[key] = def.scores[key];
+            }
+            if (!parsed.seeds) parsed.seeds = {};
+            return parsed;
+        }
+    } catch(e) {}
+    return defaultState();
+}
+
+function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function exportData() {
+    const now = new Date();
+    const ts = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+    function buildMatchExport(m, isPlacement) {
+        const [t1, t2] = isPlacement
+            ? [state.seeds[m.s1] || `#${m.s1}`, state.seeds[m.s2] || `#${m.s2}`]
+            : [m.team1, m.team2];
+        const rubbers = state.scores[m.id] || [];
+        const rubberDetails = RUBBER_NAMES.map((rn, ri) => {
+            const set = (rubbers[ri] || [['',''],['',''],['','']])[0];
+            const a = set[0], b = set[1];
+            return {
+                rubber: rn,
+                score: (a !== '' || b !== '') ? `${a}-${b}` : null,
+                winner: getSetWinner(set) === 1 ? (TEAM_SHORT[t1] || t1) : getSetWinner(set) === 2 ? (TEAM_SHORT[t2] || t2) : null
+            };
+        });
+        const res = getMatchResult(m.id);
+        return {
+            matchId: m.id,
+            team1: t1, team1Short: TEAM_SHORT[t1] || t1,
+            team2: t2, team2Short: TEAM_SHORT[t2] || t2,
+            time: m.time,
+            courts: m.courts,
+            rubberScore: `${res.r1}-${res.r2}`,
+            matchWinner: res.r1 > res.r2 ? (TEAM_SHORT[t1] || t1) : res.r2 > res.r1 ? (TEAM_SHORT[t2] || t2) : null,
+            rubbers: rubberDetails
+        };
+    }
+
+    const groups = GROUPS.map((g, gi) => ({
+        group: g.name,
+        teams: g.teams.map(t => ({ name: t, short: TEAM_SHORT[t] || t })),
+        matches: GROUP_MATCHES_DEF.filter(m => m.group === gi).map(m => buildMatchExport(m, false)),
+        standings: calcGroupStandings(gi).map((s, i) => ({
+            rank: i + 1, team: s.team, short: TEAM_SHORT[s.team] || s.team,
+            wins: s.mw, losses: s.ml,
+            netGames: s.gw - s.gl, gamesWon: s.gw, gamesLost: s.gl,
+            netSets: s.sw - s.sl, setsWon: s.sw, setsLost: s.sl
+        }))
+    }));
+
+    const placement = PLACEMENT_GROUPS_DEF.map((pg, pgi) => ({
+        group: pg.name,
+        seeds: pg.seeds.map(s => ({ seed: s, team: state.seeds[s] || null, short: TEAM_SHORT[state.seeds[s]] || state.seeds[s] || null })),
+        matches: pg.matches.map(m => buildMatchExport(m, true)),
+        standings: calcPlacementStandings(pgi).map((s, i) => ({
+            rank: pg.seeds[0] + i, team: s.team, short: TEAM_SHORT[s.team] || s.team,
+            wins: s.mw, losses: s.ml,
+            netGames: s.gw - s.gl, gamesWon: s.gw, gamesLost: s.gl,
+            netSets: s.sw - s.sl, setsWon: s.sw, setsLost: s.sl
+        }))
+    }));
+
+    const pairLeaderboard = RUBBER_NAMES.map((rn, ri) => ({
+        rubber: rn,
+        rankings: calcPairStats(ri).map((s, i) => ({
+            rank: i + 1, team: s.team, short: TEAM_SHORT[s.team] || s.team,
+            netSets: s.sw - s.sl, setsWon: s.sw, setsLost: s.sl,
+            netGames: s.gw - s.gl, gamesWon: s.gw, gamesLost: s.gl
+        }))
+    }));
+
+    const exportObj = {
+        tournament: '2026 省际网球赛 Inter-Provincial Tennis Tournament',
+        exportedAt: now.toISOString(),
+        format: {
+            groupStage: 'Round Robin, single set, first to 4 games',
+            placementStage: 'Round Robin, single set, first to 6 games',
+            rubbersPerMatch: RUBBER_NAMES
+        },
+        seedings: Object.fromEntries(Object.entries(state.seeds).filter(([,v]) => v).map(([k,v]) => [k, { team: v, short: TEAM_SHORT[v] || v }])),
+        groupStage: groups,
+        placementStage: placement,
+        pairLeaderboard,
+        _rawState: state
+    };
+
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `tournament_2026_${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            const raw = imported._rawState || imported;
+            if (!raw.scores) { alert('Invalid file format'); return; }
+            state = raw;
+            saveState();
+            location.reload();
+        } catch(err) { alert('Failed to parse file'); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function clearData() {
+    if (!confirm('确定清除所有数据？ Clear all scores and seedings?')) return;
+    state = defaultState();
+    saveState();
+    location.reload();
+}
+
+// ===================== SCORE LOGIC =====================
+
+function isGroupMatch(matchId) {
+    return matchId.startsWith('g');
+}
+
+function getNumSets(matchId) {
+    return 1;
+}
+
+function getSetWinner(setScores) {
+    const a = parseInt(setScores[0]), b = parseInt(setScores[1]);
+    if (isNaN(a) || isNaN(b) || (a === 0 && b === 0)) return 0;
+    if (a > b) return 1;
+    if (b > a) return 2;
+    return 0;
+}
+
+function getRubberWinner(rubberSets, setsToWin) {
+    let w1 = 0, w2 = 0;
+    for (const set of rubberSets) {
+        const w = getSetWinner(set);
+        if (w === 1) w1++;
+        if (w === 2) w2++;
+    }
+    if (w1 >= setsToWin) return 1;
+    if (w2 >= setsToWin) return 2;
+    return 0;
+}
+
+function getMatchResult(matchId) {
+    const rubbers = state.scores[matchId];
+    if (!rubbers) return { r1: 0, r2: 0, completed: false, rubberResults: [], anyScore: false };
+    const setsToWin = 1;
+    let r1 = 0, r2 = 0;
+    const rubberResults = [];
+    let anyScore = false;
+    for (const rubber of rubbers) {
+        const w = getRubberWinner(rubber, setsToWin);
+        rubberResults.push(w);
+        if (w === 1) r1++;
+        if (w === 2) r2++;
+        for (const set of rubber) {
+            if (set[0] !== '' || set[1] !== '') anyScore = true;
+        }
+    }
+    return { r1, r2, completed: anyScore && rubberResults.every(r => r !== 0), rubberResults, anyScore };
+}
+
+function getMatchDef(matchId) {
+    let m = GROUP_MATCHES_DEF.find(m => m.id === matchId);
+    if (m) return m;
+    for (const pg of PLACEMENT_GROUPS_DEF) {
+        m = pg.matches.find(m => m.id === matchId);
+        if (m) return m;
+    }
+    return null;
+}
+
+function getMatchTeams(matchId) {
+    const m = getMatchDef(matchId);
+    if (!m) return ['?','?'];
+    if (m.team1) return [m.team1, m.team2];
+    const t1 = state.seeds[m.s1] || `#${m.s1}`;
+    const t2 = state.seeds[m.s2] || `#${m.s2}`;
+    return [t1, t2];
+}
+
+function getMatchTeamsBilingual(matchId) {
+    const [t1, t2] = getMatchTeams(matchId);
+    const b1 = TEAM_SHORT[t1] ? `${t1}${TEAM_SHORT[t1]}` : t1;
+    const b2 = TEAM_SHORT[t2] ? `${t2}${TEAM_SHORT[t2]}` : t2;
+    return [b1, b2];
+}
+
+// ===================== STANDINGS =====================
+
+function calcGroupStandings(groupIdx) {
+    const group = GROUPS[groupIdx];
+    const matches = GROUP_MATCHES_DEF.filter(m => m.group === groupIdx);
+    const stats = {};
+    group.teams.forEach(t => {
+        stats[t] = { team: t, mw: 0, ml: 0, rw: 0, rl: 0, gw: 0, gl: 0, sw: 0, sl: 0 };
+    });
+    for (const m of matches) {
+        const res = getMatchResult(m.id);
+        if (!res.anyScore) continue;
+        const rubbers = state.scores[m.id];
+        let s1 = 0, s2 = 0, g1 = 0, g2 = 0;
+        for (const rubber of rubbers) {
+            for (const set of rubber) {
+                const a = parseInt(set[0]) || 0, b = parseInt(set[1]) || 0;
+                g1 += a; g2 += b;
+                const sw = getSetWinner(set);
+                if (sw === 1) s1++;
+                if (sw === 2) s2++;
+            }
+        }
+        stats[m.team1].rw += res.r1; stats[m.team1].rl += res.r2;
+        stats[m.team1].gw += g1; stats[m.team1].gl += g2;
+        stats[m.team1].sw += s1; stats[m.team1].sl += s2;
+        stats[m.team2].rw += res.r2; stats[m.team2].rl += res.r1;
+        stats[m.team2].gw += g2; stats[m.team2].gl += g1;
+        stats[m.team2].sw += s2; stats[m.team2].sl += s1;
+        if (res.r1 > res.r2) {
+            stats[m.team1].mw++; stats[m.team2].ml++;
+        } else if (res.r2 > res.r1) {
+            stats[m.team2].mw++; stats[m.team1].ml++;
+        }
+    }
+    return Object.values(stats).sort((a, b) => {
+        if (b.mw !== a.mw) return b.mw - a.mw;
+        if ((b.gw - b.gl) !== (a.gw - a.gl)) return (b.gw - b.gl) - (a.gw - a.gl);
+        return (b.sw - b.sl) - (a.sw - a.sl);
+    });
+}
+
+function calcPlacementStandings(pgIdx) {
+    const pg = PLACEMENT_GROUPS_DEF[pgIdx];
+    const stats = {};
+    pg.seeds.forEach(s => {
+        const team = state.seeds[s] || `#${s}`;
+        stats[s] = { seed: s, team, mw: 0, ml: 0, rw: 0, rl: 0, gw: 0, gl: 0, sw: 0, sl: 0 };
+    });
+    for (const m of pg.matches) {
+        const res = getMatchResult(m.id);
+        if (!res.anyScore) continue;
+        const rubbers = state.scores[m.id];
+        let s1 = 0, s2 = 0, g1 = 0, g2 = 0;
+        for (const rubber of rubbers) {
+            for (const set of rubber) {
+                const a = parseInt(set[0]) || 0, b = parseInt(set[1]) || 0;
+                g1 += a; g2 += b;
+                const sw = getSetWinner(set);
+                if (sw === 1) s1++;
+                if (sw === 2) s2++;
+            }
+        }
+        stats[m.s1].rw += res.r1; stats[m.s1].rl += res.r2;
+        stats[m.s1].gw += g1; stats[m.s1].gl += g2;
+        stats[m.s1].sw += s1; stats[m.s1].sl += s2;
+        stats[m.s2].rw += res.r2; stats[m.s2].rl += res.r1;
+        stats[m.s2].gw += g2; stats[m.s2].gl += g1;
+        stats[m.s2].sw += s2; stats[m.s2].sl += s1;
+        if (res.r1 > res.r2) {
+            stats[m.s1].mw++; stats[m.s2].ml++;
+        } else if (res.r2 > res.r1) {
+            stats[m.s2].mw++; stats[m.s1].ml++;
+        }
+    }
+    return Object.values(stats).sort((a, b) => {
+        if (b.mw !== a.mw) return b.mw - a.mw;
+        if ((b.gw - b.gl) !== (a.gw - a.gl)) return (b.gw - b.gl) - (a.gw - a.gl);
+        return (b.sw - b.sl) - (a.sw - a.sl);
+    });
+}
+
+// ===================== CELL RENDERING =====================
+
+function cellLabel(matchId, rubberIdx) {
+    const [t1, t2] = getMatchTeams(matchId);
+    return `${t1}/${t2} ${RUBBER_NAMES[rubberIdx]}`;
+}
+
+function renderCell(matchId, rubberIdx) {
+    if (!matchId) return '<td class="empty-cell"></td>';
+    const [t1, t2] = getMatchTeamsBilingual(matchId);
+    const rubbers = state.scores[matchId] || [];
+    const sets = rubbers[rubberIdx] || [['',''],['',''],['','']];    const numSets = 1;
+    const setsToWin = 1;
+    const rWin = getRubberWinner(sets, setsToWin);
+    const t1c = rWin === 1 ? 'team-won' : (rWin === 2 ? 'team-lost' : '');
+    const t2c = rWin === 2 ? 'team-won' : (rWin === 1 ? 'team-lost' : '');
+
+    let scoreHtml = '';
+    for (let si = 0; si < numSets; si++) {
+        const v0 = sets[si][0], v1 = sets[si][1];
+        const sw = getSetWinner(sets[si]);
+        const c0 = sw === 1 ? 'winner-input' : (sw === 2 ? 'loser-input' : '');
+        const c1 = sw === 2 ? 'winner-input' : (sw === 1 ? 'loser-input' : '');
+        if (si > 0) scoreHtml += '<span class="set-sep"></span>';
+        scoreHtml += `<input type="number" min="0" max="99" class="${c0}" id="c_${matchId}_${rubberIdx}_${si}_0" value="${v0}"
+            onblur="onCellBlur('${matchId}',${rubberIdx},${si},0)" onfocus="this.select()">`;
+        scoreHtml += '<span class="sep">:</span>';
+        scoreHtml += `<input type="number" min="0" max="99" class="${c1}" id="c_${matchId}_${rubberIdx}_${si}_1" value="${v1}"
+            onblur="onCellBlur('${matchId}',${rubberIdx},${si},1)" onfocus="this.select()">`;
+    }
+
+    return `<td><div class="cell-match" data-cell="${matchId}_${rubberIdx}">
+        <div class="cell-label" id="lbl_${matchId}_${rubberIdx}"><span class="t1 ${t1c}">${t1}</span> v <span class="t2 ${t2c}">${t2}</span></div>
+        <div class="cell-score"><span class="cell-rubber">${RUBBER_NAMES[rubberIdx]}</span>${scoreHtml}</div>
+    </div></td>`;
+}
+
+// ===================== SCORE ENTRY =====================
+
+function onCellBlur(matchId, ri, si, side) {
+    const a = document.getElementById(`c_${matchId}_${ri}_${si}_0`);
+    const b = document.getElementById(`c_${matchId}_${ri}_${si}_1`);
+    if (!a || !b) return;
+
+    // Auto-fill: group = first to 4, placement = first to 6
+    const autoFillTarget = isGroupMatch(matchId) ? 4 : 6;
+    const val = parseInt(side === 0 ? a.value : b.value);
+    const otherEl = side === 0 ? b : a;
+    if (!isNaN(val) && val >= 0 && val < autoFillTarget && otherEl.value === '') {
+        otherEl.value = String(autoFillTarget);
+    }
+
+    // Save this rubber from DOM
+    saveRubberFromDOM(matchId, ri);
+
+    // Auto-advance
+    if (a.value !== '' && b.value !== '') {
+        const numSets = getNumSets(matchId);
+        if (si < numSets - 1) {
+            const next = document.getElementById(`c_${matchId}_${ri}_${si+1}_0`);
+            if (next && next.value === '') next.focus();
+        }
+    }
+}
+
+function saveRubberFromDOM(matchId, ri) {
+    const numSets = getNumSets(matchId);
+    const sets = [];
+    for (let si = 0; si < 3; si++) {
+        const aEl = document.getElementById(`c_${matchId}_${ri}_${si}_0`);
+        const bEl = document.getElementById(`c_${matchId}_${ri}_${si}_1`);
+        if (aEl && bEl) {
+            sets.push([aEl.value.trim(), bEl.value.trim()]);
+        } else {
+            sets.push(['', '']);
+        }
+    }
+    if (!state.scores[matchId]) {
+        state.scores[matchId] = RUBBER_NAMES.map(() => [['',''],['',''],['','']]);
+    }
+    state.scores[matchId][ri] = sets;
+    saveState();
+
+    // Update this cell's styling
+    updateCellDisplay(matchId, ri);
+
+    // Debounce standings
+    clearTimeout(saveRubberFromDOM._timer);
+    saveRubberFromDOM._timer = setTimeout(renderStandings, 300);
+}
+
+function updateCellDisplay(matchId, ri) {
+    const setsToWin = 1;
+    const numSets = 1;
+    const sets = state.scores[matchId][ri];
+    const rWin = getRubberWinner(sets, setsToWin);
+
+    // Update label color
+    const lbl = document.getElementById(`lbl_${matchId}_${ri}`);
+    if (lbl) {
+        const t1span = lbl.querySelector('.t1');
+        const t2span = lbl.querySelector('.t2');
+        if (t1span) { t1span.classList.remove('team-won','team-lost'); if (rWin===1) t1span.classList.add('team-won'); if (rWin===2) t1span.classList.add('team-lost'); }
+        if (t2span) { t2span.classList.remove('team-won','team-lost'); if (rWin===2) t2span.classList.add('team-won'); if (rWin===1) t2span.classList.add('team-lost'); }
+    }
+
+    // Update input colors
+    for (let si = 0; si < numSets; si++) {
+        const a = document.getElementById(`c_${matchId}_${ri}_${si}_0`);
+        const b = document.getElementById(`c_${matchId}_${ri}_${si}_1`);
+        if (!a || !b) continue;
+        const sw = getSetWinner(sets[si]);
+        a.classList.remove('winner-input', 'loser-input');
+        b.classList.remove('winner-input', 'loser-input');
+        if (sw === 1) { a.classList.add('winner-input'); b.classList.add('loser-input'); }
+        if (sw === 2) { b.classList.add('winner-input'); a.classList.add('loser-input'); }
+    }
+}
+
+// ===================== RENDER =====================
+
+function renderGroupStandings() {
+    const el = document.getElementById('group-standings');
+    let html = '';
+    GROUPS.forEach((g, gi) => {
+        const standings = calcGroupStandings(gi);
+        html += `<div class="standings-card">
+            <div class="standings-card-header">${g.name} — ${g.teams.map(t => tn(t)).join(' · ')}</div>
+            <table class="standings">
+                <tr><th>队伍 Team</th><th>胜 W</th><th>负 L</th><th>净局 Net G</th><th>局胜 GW</th><th>局负 GL</th><th>净盘 Net S</th><th>盘胜 SW</th><th>盘负 SL</th></tr>
+                ${standings.map((s, i) => `<tr>
+                    <td>${i+1}. ${tn(s.team)}</td>
+                    <td>${s.mw}</td><td>${s.ml}</td>
+                    <td><b>${s.gw - s.gl}</b></td><td>${s.gw}</td><td>${s.gl}</td>
+                    <td><b>${s.sw - s.sl}</b></td><td>${s.sw}</td><td>${s.sl}</td>
+                </tr>`).join('')}
+            </table>
+        </div>`;
+    });
+    el.innerHTML = html;
+}
+
+function renderPlacementStandings() {
+    const el = document.getElementById('placement-standings');
+    let html = '';
+    PLACEMENT_GROUPS_DEF.forEach((pg, pgi) => {
+        const standings = calcPlacementStandings(pgi);
+        html += `<div class="standings-card">
+            <div class="standings-card-header ${pg.headerClass}">${pg.name}</div>
+            <table class="standings">
+                <tr><th>队伍 Team</th><th>胜 W</th><th>负 L</th><th>净局 Net G</th><th>局胜 GW</th><th>局负 GL</th><th>净盘 Net S</th><th>盘胜 SW</th><th>盘负 SL</th></tr>
+                ${standings.map((s, i) => `<tr>
+                    <td>${pg.seeds[0] + i}. ${s.team.startsWith('#') ? s.team : tn(s.team)}</td>
+                    <td>${s.mw}</td><td>${s.ml}</td>
+                    <td><b>${s.gw - s.gl}</b></td><td>${s.gw}</td><td>${s.gl}</td>
+                    <td><b>${s.sw - s.sl}</b></td><td>${s.sw}</td><td>${s.sl}</td>
+                </tr>`).join('')}
+            </table>
+        </div>`;
+    });
+    el.innerHTML = html;
+}
+
+function renderStandings() {
+    renderGroupStandings();
+    renderPlacementStandings();
+    renderPairLeaderboard();
+}
+
+function calcPairStats(rubberIdx) {
+    const stats = {};
+    ALL_TEAMS.forEach(t => {
+        stats[t] = { team: t, sw: 0, sl: 0, gw: 0, gl: 0, played: 0 };
+    });
+    const allMatches = [...GROUP_MATCHES_DEF, ...PLACEMENT_GROUPS_DEF.flatMap(g => g.matches)];
+    for (const m of allMatches) {
+        const rubbers = state.scores[m.id];
+        if (!rubbers || !rubbers[rubberIdx]) continue;
+        const set = rubbers[rubberIdx][0];
+        const a = parseInt(set[0]) || 0, b = parseInt(set[1]) || 0;
+        if (a === 0 && b === 0) continue;
+        let t1, t2;
+        if (m.team1) { t1 = m.team1; t2 = m.team2; }
+        else { t1 = state.seeds[m.s1]; t2 = state.seeds[m.s2]; }
+        if (!t1 || !t2) continue;
+        if (!stats[t1]) stats[t1] = { team: t1, sw: 0, sl: 0, gw: 0, gl: 0, played: 0 };
+        if (!stats[t2]) stats[t2] = { team: t2, sw: 0, sl: 0, gw: 0, gl: 0, played: 0 };
+        stats[t1].gw += a; stats[t1].gl += b;
+        stats[t2].gw += b; stats[t2].gl += a;
+        const sw = getSetWinner(set);
+        if (sw === 1) { stats[t1].sw++; stats[t2].sl++; }
+        if (sw === 2) { stats[t2].sw++; stats[t1].sl++; }
+        stats[t1].played++; stats[t2].played++;
+    }
+    return Object.values(stats).filter(s => s.played > 0).sort((a, b) => {
+        const netS = (b.sw - b.sl) - (a.sw - a.sl);
+        if (netS !== 0) return netS;
+        return (b.gw - b.gl) - (a.gw - a.gl);
+    });
+}
+
+function renderPairLeaderboard() {
+    const el = document.getElementById('pair-leaderboard');
+    let html = '';
+    RUBBER_NAMES.forEach((rName, ri) => {
+        const standings = calcPairStats(ri);
+        html += `<div class="standings-card">
+            <div class="standings-card-header">${rName}</div>
+            <table class="standings">
+                <tr><th>#</th><th>队伍 Team</th><th>净盘 Net S</th><th>盘胜 SW</th><th>盘负 SL</th><th>净局 Net G</th><th>局胜 GW</th><th>局负 GL</th></tr>
+                ${standings.map((s, i) => `<tr>
+                    <td>${i+1}</td><td>${tn(s.team)}</td>
+                    <td><b>${s.sw - s.sl}</b></td><td>${s.sw}</td><td>${s.sl}</td>
+                    <td><b>${s.gw - s.gl}</b></td><td>${s.gw}</td><td>${s.gl}</td>
+                </tr>`).join('')}
+            </table>
+        </div>`;
+    });
+    el.innerHTML = html;
+}
+
+function renderOutdoorDraw() {
+    const el = document.getElementById('outdoor-draw');
+    const times = ['10:30','11:00','11:30','12:00','12:30','13:00'];
+    let html = '<table class="draw-table"><tr><th>时间 Time</th>';
+    for (let c = 7; c <= 18; c++) html += `<th>${c}号场 Ct.${c}</th>`;
+    html += '</tr>';
+    for (const time of times) {
+        const cells = OUTDOOR_GRID[time];
+        html += `<tr><td class="time-cell">${time}</td>`;
+        for (const cell of cells) {
+            if (cell) {
+                html += renderCell(cell[0], cell[1]);
+            } else {
+                html += '<td class="empty-cell"></td>';
+            }
+        }
+        html += '</tr>';
+    }
+    html += '</table>';
+    el.innerHTML = html;
+}
+
+function renderIndoorDraw() {
+    const el = document.getElementById('indoor-draw');
+    const times = ['13:30','14:15','15:00','15:45','16:30','17:15','18:00','18:45','19:30','20:15'];
+    let html = '<table class="draw-table"><tr><th>时间 Time</th>';
+    for (let c = 1; c <= 6; c++) html += `<th>${c}号场 Ct.${c}</th>`;
+    html += '</tr>';
+    for (const time of times) {
+        const cells = INDOOR_GRID[time];
+        html += `<tr><td class="time-cell">${time}</td>`;
+        for (const cell of cells) {
+            if (cell) {
+                html += renderCell(cell[0], cell[1]);
+            } else {
+                html += '<td class="empty-cell"></td>';
+            }
+        }
+        html += '</tr>';
+    }
+    html += '<tr><td class="time-cell">21:00</td><td colspan="6" style="text-align:center;padding:10px;font-weight:700;color:var(--primary);background:#fffde7">🏆 颁奖典礼 Awards Ceremony</td></tr>';
+    html += '</table>';
+    el.innerHTML = html;
+}
+
+function renderSeedMapping() {
+    const el = document.getElementById('seed-mapping');
+    el.innerHTML = `<div class="seed-section">
+        <h3>🏷️ 种子排位 Seeding — 根据小组赛成绩分配 Assign based on group results</h3>
+        <div class="seed-grid">
+            ${Array.from({length:12}, (_,i) => i+1).map(s => `
+                <div class="seed-row">
+                    <span class="seed-label">#${s}</span>
+                    <select class="seed-select" onchange="setSeed(${s}, this.value)">
+                        <option value="">—</option>
+                        ${ALL_TEAMS.map(t => `<option value="${t}" ${state.seeds[s] === t ? 'selected' : ''}>${tn(t)}</option>`).join('')}
+                    </select>
+                </div>
+            `).join('')}
+        </div>
+    </div>`;
+}
+
+function setSeed(seed, team) {
+    if (team) {
+        for (const [k, v] of Object.entries(state.seeds)) {
+            if (v === team && parseInt(k) !== seed) state.seeds[k] = '';
+        }
+    }
+    state.seeds[seed] = team;
+    saveState();
+    renderIndoorDraw();
+    renderSeedMapping();
+    renderPlacementStandings();
+}
+
+function renderAll() {
+    renderStandings();
+    renderOutdoorDraw();
+    renderSeedMapping();
+    renderIndoorDraw();
+}
+
+renderAll();
+</script>
+</body>
+</html>
