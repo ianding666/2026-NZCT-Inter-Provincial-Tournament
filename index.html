@@ -501,7 +501,7 @@ function exportData() {
             time: m.time,
             courts: m.courts,
             rubberScore: `${res.r1}-${res.r2}`,
-            matchWinner: res.r1 > res.r2 ? (TEAM_SHORT[t1] || t1) : res.r2 > res.r1 ? (TEAM_SHORT[t2] || t2) : null,
+            matchWinner: (() => { const rubbers = state.scores[m.id] || []; let mg1=0, mg2=0, ms1=0, ms2=0; for (const rubber of rubbers) { for (const set of rubber) { const a = parseInt(set[0]) || 0, b = parseInt(set[1]) || 0; mg1 += a; mg2 += b; if (a > b) ms1++; if (b > a) ms2++; } } if (mg1 > mg2) return TEAM_SHORT[t1] || t1; if (mg2 > mg1) return TEAM_SHORT[t2] || t2; if (ms1 > ms2) return TEAM_SHORT[t1] || t1; if (ms2 > ms1) return TEAM_SHORT[t2] || t2; return null; })(),
             rubbers: rubberDetails
         };
     }
@@ -691,16 +691,19 @@ function calcGroupStandings(groupIdx) {
         stats[m.team2].rw += res.r2; stats[m.team2].rl += res.r1;
         stats[m.team2].gw += g2; stats[m.team2].gl += g1;
         stats[m.team2].sw += s2; stats[m.team2].sl += s1;
-        if (res.r1 > res.r2) {
+        // Team win is based on net games in the match, then net sets as tiebreaker
+        if (g1 > g2) {
             stats[m.team1].mw++; stats[m.team2].ml++;
-        } else if (res.r2 > res.r1) {
+        } else if (g2 > g1) {
+            stats[m.team2].mw++; stats[m.team1].ml++;
+        } else if (s1 > s2) {
+            stats[m.team1].mw++; stats[m.team2].ml++;
+        } else if (s2 > s1) {
             stats[m.team2].mw++; stats[m.team1].ml++;
         }
     }
     return Object.values(stats).sort((a, b) => {
-        if (b.mw !== a.mw) return b.mw - a.mw;
-        if ((b.gw - b.gl) !== (a.gw - a.gl)) return (b.gw - b.gl) - (a.gw - a.gl);
-        return (b.sw - b.sl) - (a.sw - a.sl);
+        return (b.gw - b.gl) - (a.gw - a.gl);
     });
 }
 
@@ -731,16 +734,19 @@ function calcPlacementStandings(pgIdx) {
         stats[m.s2].rw += res.r2; stats[m.s2].rl += res.r1;
         stats[m.s2].gw += g2; stats[m.s2].gl += g1;
         stats[m.s2].sw += s2; stats[m.s2].sl += s1;
-        if (res.r1 > res.r2) {
+        // Team win is based on net games in the match, then net sets as tiebreaker
+        if (g1 > g2) {
             stats[m.s1].mw++; stats[m.s2].ml++;
-        } else if (res.r2 > res.r1) {
+        } else if (g2 > g1) {
+            stats[m.s2].mw++; stats[m.s1].ml++;
+        } else if (s1 > s2) {
+            stats[m.s1].mw++; stats[m.s2].ml++;
+        } else if (s2 > s1) {
             stats[m.s2].mw++; stats[m.s1].ml++;
         }
     }
     return Object.values(stats).sort((a, b) => {
-        if (b.mw !== a.mw) return b.mw - a.mw;
-        if ((b.gw - b.gl) !== (a.gw - a.gl)) return (b.gw - b.gl) - (a.gw - a.gl);
-        return (b.sw - b.sl) - (a.sw - a.sl);
+        return (b.gw - b.gl) - (a.gw - a.gl);
     });
 }
 
@@ -878,7 +884,7 @@ function renderGroupStandings() {
                     <td>${i+1}. ${tn(s.team)}</td>
                     <td>${s.mw}</td><td>${s.ml}</td>
                     <td><b>${s.gw - s.gl}</b></td><td>${s.gw}</td><td>${s.gl}</td>
-                    <td><b>${s.sw - s.sl}</b></td><td>${s.sw}</td><td>${s.sl}</td>
+                    <td>${s.sw - s.sl}</td><td>${s.sw}</td><td>${s.sl}</td>
                 </tr>`).join('')}
             </table>
         </div>`;
@@ -899,7 +905,7 @@ function renderPlacementStandings() {
                     <td>${pg.seeds[0] + i}. ${s.team.startsWith('#') ? s.team : tn(s.team)}</td>
                     <td>${s.mw}</td><td>${s.ml}</td>
                     <td><b>${s.gw - s.gl}</b></td><td>${s.gw}</td><td>${s.gl}</td>
-                    <td><b>${s.sw - s.sl}</b></td><td>${s.sw}</td><td>${s.sl}</td>
+                    <td>${s.sw - s.sl}</td><td>${s.sw}</td><td>${s.sl}</td>
                 </tr>`).join('')}
             </table>
         </div>`;
@@ -956,7 +962,7 @@ function renderPairLeaderboard() {
                 <tr><th>#</th><th>队伍 Team</th><th>净盘 Net S</th><th>盘胜 SW</th><th>盘负 SL</th><th>净局 Net G</th><th>局胜 GW</th><th>局负 GL</th></tr>
                 ${standings.map((s, i) => `<tr>
                     <td>${i+1}</td><td>${tn(s.team)}</td>
-                    <td><b>${s.sw - s.sl}</b></td><td>${s.sw}</td><td>${s.sl}</td>
+                    <td>${s.sw - s.sl}</td><td>${s.sw}</td><td>${s.sl}</td>
                     <td><b>${s.gw - s.gl}</b></td><td>${s.gw}</td><td>${s.gl}</td>
                 </tr>`).join('')}
             </table>
